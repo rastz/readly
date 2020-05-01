@@ -8,6 +8,7 @@ const {
 	GraphQLInt,
 	GraphQLSchema,
 	GraphQLID,
+	GraphQLList,
 } = graphql;
 
 //dummy data / later on mongoDB / firebabase "Cloud Firestore"
@@ -15,6 +16,10 @@ const books = [
 	{ name: "Name of the Wind", genre: "Fantasy", id: "1", authorId: "1" },
 	{ name: "The Final Empire", genre: "Fantasy", id: "2", authorId: "2" },
 	{ name: "The Long Earth", genre: "Sci-Fi", id: "3", authorId: "3" },
+
+	{ name: "The Hero of Ages", genre: "Fantasy", id: "4", authorId: "2" },
+	{ name: "The Colour of Magic", genre: "Fantasy", id: "5", authorId: "3" },
+	{ name: "The Light Fantastic", genre: "Fantasy", id: "6", authorId: "3" },
 ];
 
 const authors = [
@@ -31,7 +36,7 @@ const BookType = new GraphQLObjectType({
 		genre: { type: GraphQLString },
 		author: {
 			type: AuthorType,
-			resolve(parent, args) {
+			resolve(parent, _args) {
 				console.log(parent);
 				return _.find(authors, { id: parent.authorId });
 			},
@@ -45,6 +50,12 @@ const AuthorType = new GraphQLObjectType({
 		id: { type: GraphQLString },
 		name: { type: GraphQLString },
 		age: { type: GraphQLInt },
+		books: {
+			type: new GraphQLList(BookType),
+			resolve(parent, _args) {
+				return _.filter(books, { authorId: parent.id });
+			},
+		},
 	}),
 });
 
@@ -67,6 +78,14 @@ const RootQuery = new GraphQLObjectType({
 				//code to get data from db / other cource
 				return _.find(authors, { id: args.id });
 			},
+		},
+		books: {
+			type: new GraphQLList(BookType),
+			resolve: (_parent, _args) => books,
+		},
+		authors: {
+			type: new GraphQLList(AuthorType),
+			resolve: (_parent, _args) => authors,
 		},
 	},
 });
